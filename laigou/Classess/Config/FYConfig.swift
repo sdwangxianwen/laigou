@@ -47,76 +47,92 @@ var RGBAColor: (CGFloat, CGFloat, CGFloat, CGFloat) -> UIColor = {red, green, bl
 // MARK: - 颜色的设置
 extension UIColor {
     
-    /*
-     convenience:便利，使用convenience修饰的构造函数叫做便利构造函数
-     便利构造函数通常用在对系统的类进行构造函数的扩充时使用。
-     便利构造函数的特点：
-     1、便利构造函数通常都是写在extension里面
-     2、便利函数init前面需要加载convenience
-     3、在便利构造函数中需要明确的调用self.init()
-     */
-    convenience init(hexString: String) {
-        self.init(hexString: hexString,alpha: 1)
-    }
-    
-    convenience init(hexString: String, alpha: CGFloat) {
-        let hex = hexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int = UInt32()
-        Scanner(string: hex).scanHexInt32(&int)
-        let r, g, b: UInt32
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (r, g, b) = ((int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (r, g, b) = (int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (r, g, b) = (int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (r, g, b) = (0, 0, 0)
-        }
-        self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: alpha)
-    }
-    
-    
-    /// 使用Int值快速创建颜色
-    convenience init(redValue: Int, green: Int, blue: Int, alpha: CGFloat) {
-        self.init(red: CGFloat(redValue) / 255.0, green: CGFloat(green) / 255.0, blue: CGFloat(blue) / 255.0, alpha: alpha)
-    }
-    
-    func convertRGB() -> [Int]? {
-        var fRed : CGFloat = 0
-        var fGreen : CGFloat = 0
-        var fBlue : CGFloat = 0
-        var fAlpha: CGFloat = 0
-        if self.getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: &fAlpha) {
-            let iRed = Int(fRed * 255.0)
-            let iGreen = Int(fGreen * 255.0)
-            let iBlue = Int(fBlue * 255.0)
-            //            let iAlpha = Int(fAlpha * 255.0)
-            return [iRed, iGreen, iBlue]
-        } else {
-            // Could not extract RGBA components:
-            return [13, 122, 255]
-        }
-    }
-    //let color = UIColor(hex: "ff0000")
+     convenience init(r:UInt32 ,g:UInt32 , b:UInt32 , a:CGFloat = 1.0) {
+          self.init(red: CGFloat(r) / 255.0,
+                    green: CGFloat(g) / 255.0,
+                    blue: CGFloat(b) / 255.0,
+                    alpha: a)
+      }
+      
+      class var random: UIColor {
+          return UIColor(r: arc4random_uniform(256),
+                         g: arc4random_uniform(256),
+                         b: arc4random_uniform(256))
+      }
+      
+      func image() -> UIImage {
+          let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
+          UIGraphicsBeginImageContext(rect.size)
+          let context = UIGraphicsGetCurrentContext()
+          context!.setFillColor(self.cgColor)
+          context!.fill(rect)
+          let image = UIGraphicsGetImageFromCurrentImageContext()
+          UIGraphicsEndImageContext()
+          return image!
+      }
+      
+      class func hex(hexString: String) -> UIColor {
+          var cString: String = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
+          if cString.count < 6 { return UIColor.black }
+          
+          let index = cString.index(cString.endIndex, offsetBy: -6)
+          let subString = cString[index...]
+          if cString.hasPrefix("0X") { cString = String(subString) }
+          if cString.hasPrefix("#") { cString = String(subString) }
+          
+          if cString.count != 6 { return UIColor.black }
+          
+          var range: NSRange = NSMakeRange(0, 2)
+          let rString = (cString as NSString).substring(with: range)
+          range.location = 2
+          let gString = (cString as NSString).substring(with: range)
+          range.location = 4
+          let bString = (cString as NSString).substring(with: range)
+          
+          var r: UInt32 = 0x0
+          var g: UInt32 = 0x0
+          var b: UInt32 = 0x0
+          
+          Scanner(string: rString).scanHexInt32(&r)
+          Scanner(string: gString).scanHexInt32(&g)
+          Scanner(string: bString).scanHexInt32(&b)
+          
+          return UIColor(r: r, g: g, b: b)
+      }
     
 }
 
-let mainColor = UIColor.init(hexString: "#24B5A1")
+let mainColor = UIColor.hex(hexString: "#24B5A1")
 
 func getCurrentController() -> UIViewController {
-    var currentVC = UIApplication.shared.keyWindow?.rootViewController
-         while (currentVC?.presentedViewController != nil) {
-           currentVC = currentVC?.presentedViewController
-         }
-         if (currentVC?.isKind(of: UITabBarController.self))! {
-             currentVC = (currentVC as! UITabBarController).selectedViewController
-         }
-         if (currentVC?.isKind(of: UINavigationController.self))! {
-             currentVC = (currentVC as! UINavigationController).visibleViewController
-         }
-         return currentVC!
+    
+    if #available(iOS 13.0, *) {
+        var currentVC = UIApplication.shared.windows.first?.rootViewController
+                while (currentVC?.presentedViewController != nil) {
+                  currentVC = currentVC?.presentedViewController
+                }
+                if (currentVC?.isKind(of: UITabBarController.self))! {
+                    currentVC = (currentVC as! UITabBarController).selectedViewController
+                }
+                if (currentVC?.isKind(of: UINavigationController.self))! {
+                    currentVC = (currentVC as! UINavigationController).visibleViewController
+                }
+                return currentVC!
+    } else {
+        var currentVC = UIApplication.shared.keyWindow?.rootViewController
+                while (currentVC?.presentedViewController != nil) {
+                  currentVC = currentVC?.presentedViewController
+                }
+                if (currentVC?.isKind(of: UITabBarController.self))! {
+                    currentVC = (currentVC as! UITabBarController).selectedViewController
+                }
+                if (currentVC?.isKind(of: UINavigationController.self))! {
+                    currentVC = (currentVC as! UINavigationController).visibleViewController
+                }
+                return currentVC!
+    }
+    
+   
 }
 
 private func viewForController(view:UIView)->UIViewController?{
@@ -365,16 +381,7 @@ public extension UIView {
 
 extension UIImage {
     //根据颜色创建一个纯Image
-    func imageUseColor(color : String) -> UIImage {
-        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
-        UIGraphicsBeginImageContext(rect.size)
-        let context : CGContext = UIGraphicsGetCurrentContext()!
-        context.setFillColor(UIColor.init(hexString:color).cgColor)
-        context.fill(rect)
-        let image : UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-        return image
-    }
+   
 }
 
 extension String {

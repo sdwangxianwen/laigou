@@ -15,25 +15,38 @@ class FYBaseViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.white
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        if self.navigationController?.children.count != 1 {
-            self.view.addSubview(self.navBar)
-            navBar.fy_setLeftButton(title: "返回", image: UIImage.init(named: "customback")!, titleColor: UIColor.black)
-            navBar.fy_setBottomLineHidden(hidden: true)
-//            navBar.barBackgroundColor = mainColor
+        
+        if #available(iOS 11.0, *) {
+            UIScrollView.appearance().contentInsetAdjustmentBehavior = .never
+        } else {
+            automaticallyAdjustsScrollViewInsets = false
         }
     }
     
-    lazy var navBar = FYCustomNavigationBar.CustomNavigationBar()
-
-    //状态栏颜色默认为黑色
-    override open var preferredStatusBarStyle: UIStatusBarStyle {
-        if #available(iOS 13.0, *) {
-             return .default
-        }
-         return .default
-       
-    }
-
+    override func viewWillAppear(_ animated: Bool) {
+           super.viewWillAppear(animated)
+           configNavigationBar()
+       }
+    
+    func configNavigationBar() {
+           guard let navi = navigationController else { return }
+        if navi.visibleViewController == self {
+            navi.barStyle(.theme)
+            navi.disablePopGesture = false
+            navi.setNavigationBarHidden(false, animated: true)
+            if navi.viewControllers.count > 1 {
+                navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage.init(named: "nav_back_white"), style: .plain, target: self, action: #selector(pressBack))
+            }
+           }
+       }
+    @objc func pressBack() {
+          navigationController?.popViewController(animated: true)
+      }
 }
 
+extension FYBaseViewController {
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle{
+        return .lightContent
+    }
+}

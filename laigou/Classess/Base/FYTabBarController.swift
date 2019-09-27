@@ -12,7 +12,7 @@ class FYTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .white
+        tabBar.isTranslucent = false
         setupChild()
         
     }
@@ -23,19 +23,25 @@ class FYTabBarController: UITabBarController {
         let novelVC = FYNovelViewController.init()
         let meVC = FYMeViewController.init()
 
-        addChild(comicsVC, title: "看漫画", imageName: "", imageSelectName: "")
-        addChild(communityVC, title: "逛社区", imageName: "", imageSelectName: "")
-        addChild(novelVC, title: "读小说", imageName: "", imageSelectName: "")
-        addChild(meVC, title: "我的", imageName: "", imageSelectName: "")
+        addChild(comicsVC, title: "", imageName:"tab_home", imageSelectName: "tab_home_S")
+        addChild(communityVC, title: "", imageName: "tab_class", imageSelectName: "tab_class_S")
+        addChild(novelVC, title: "", imageName: "tab_book", imageSelectName: "tab_book_S")
+        addChild(meVC, title: "", imageName: "tab_mine", imageSelectName: "tab_mine_S")
         
     }
     
     func addChild(_ childController: UIViewController,title:String,imageName:String,imageSelectName:String) {
         let navVC = FYNavgationController.init(rootViewController: childController)
-        navVC.tabBarItem = UITabBarItem.init(title: title, image:UIImage.init(named: imageName), selectedImage: UIImage.init(named: imageSelectName)?.withRenderingMode(.alwaysOriginal))
+        navVC.tabBarItem = UITabBarItem.init(title: title, image:UIImage.init(named: imageName)!.withRenderingMode(.alwaysOriginal), selectedImage: UIImage.init(named: imageSelectName)?.withRenderingMode(.alwaysOriginal))
     navVC.tabBarItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor:UIColor.lightGray], for: .normal)
     navVC.tabBarItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor:UIColor.orange], for: .selected)
         
         addChild(navVC)
+    }
+}
+extension FYTabBarController {
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        guard let select = selectedViewController else { return .lightContent }
+        return select.preferredStatusBarStyle
     }
 }

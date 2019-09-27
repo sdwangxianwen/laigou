@@ -9,7 +9,7 @@
 
 import UIKit
 
-class FYMeViewController: UIViewController {
+class FYMeViewController: FYBaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()

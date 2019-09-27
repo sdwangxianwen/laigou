@@ -8,7 +8,7 @@
 
 import UIKit
 
-class FYNovelViewController: UIViewController {
+class FYNovelViewController: FYBaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()

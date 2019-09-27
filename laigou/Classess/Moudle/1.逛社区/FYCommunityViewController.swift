@@ -8,7 +8,7 @@
 
 import UIKit
 
-class FYCommunityViewController: UIViewController {
+class FYCommunityViewController: FYBaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
